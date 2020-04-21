@@ -1,7 +1,9 @@
-// Copyright (c) 2020 [Your Name]. All rights reserved.
+// Copyright (c) 2020 [Allan Huang]. All rights reserved.
 
 #include <mylibrary/example.h>
 
 namespace mylibrary {
+
+
 
 }  // namespace mylibrary
