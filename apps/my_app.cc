@@ -1,11 +1,12 @@
 // Copyright (c) 2020 [Your Name]. All rights reserved.
 
 #include "my_app.h"
-
-#include <CinderImGui.h>
+//#include <CinderImGui.h>
 #include <cinder/app/App.h>
 #include <cinder/gl/wrapper.h>
 #include <iostream>
+
+#include <chor>
 
 #include <cinder/Font.h>
 #include <cinder/Text.h>
@@ -27,6 +28,7 @@ MyApp::MyApp() :
 
 
 void MyApp::setup() {
+  //ImGui::initialize();
   
   // Setting up the songs
   cinder::audio::SourceFileRef songOneFile =
@@ -65,7 +67,7 @@ void PrintText(const string& text, const C& color, const cinder::ivec2& size,
 
 void MyApp::update() {
   
-  if (state_ == PageState::playEasy) {
+ /* if (state_ == PageState::playEasy) {
     star_->start();
   } 
   if (state_ == PageState::playMed) {
@@ -78,11 +80,13 @@ void MyApp::update() {
     star_->stop();
     birthday_->stop();
     tetris_->stop();
-  }
+  }  */
 }
 
 
 void MyApp::draw() {
+ // ImGui::Text("Hello");
+  
   draw_main();
   
   if (state_ == PageState::nextPage) {
@@ -94,10 +98,7 @@ void MyApp::draw() {
 
   if (state_ == PageState::playEasy) {
     draw_sheets();
-    if (state_ == PageState::goBack && state_ != PageState::nextPage) {
-      draw_select();
-    }
-  } 
+  }
   
   if (state_ == PageState::playMed) {
     draw_sheets();
@@ -130,6 +131,7 @@ void MyApp::draw_main() {
 
 void MyApp::draw_select() {
   cinder::gl::clear(cinder::Color(1,1,1));
+  
   const cinder::vec2 center = getWindowCenter();
   const cinder::ivec2 size = {1300, 400};
   const Color color = Color::black();
@@ -148,12 +150,15 @@ void MyApp::draw_select() {
 }
 
 void MyApp::draw_sheets() {
+  
+  // Vertical lines
   cinder::gl::clear(cinder::Color(1,1,1));
-  const cinder::vec2 center = getWindowCenter();
-  const cinder::ivec2 size = {1300, 400};
-  const Color color = Color::black();
-  //size_t row = 0;
-  PrintText("Music", color, size, center);
+  cinder::gl::drawSolidRect(Rectf(190, 800, 200, 0));
+  cinder::gl::drawSolidRect(Rectf(390, 800, 400, 0));
+  cinder::gl::drawSolidRect(Rectf(590, 800, 600, 0));
+  // Horizontal line
+  cinder::gl::drawSolidRect(Rectf(800, 690, 0, 700));
+  
 }
 
 
@@ -169,6 +174,7 @@ void MyApp::keyDown(KeyEvent event) {
   if (event.getCode() == KeyEvent::KEY_LEFT) {
     state_ = PageState::goBack;
   }
+  
   
   if (event.getCode() == KeyEvent::KEY_1) {
     state_ = PageState::playEasy;
