@@ -6,29 +6,48 @@
 #include <cinder/gl/wrapper.h>
 #include <iostream>
 
-#include <chor>
+#include <choreograph/Choreograph.h>
 
 #include <cinder/Font.h>
 #include <cinder/Text.h>
 #include <cinder/Vector.h>
 #include <cinder/gl/draw.h>
 #include <cinder/gl/gl.h>
+#include <cinder/GeomIo.h>
 
 namespace myapp {
+
+using namespace choreograph;
+
 
 using cinder::app::KeyEvent;
 using cinder::Color;
 using cinder::ColorA;
 using cinder::Rectf;
 using cinder::TextBox;
+
+using std::chrono::seconds;
+using std::chrono::system_clock;
+
 using std::string;
+using choreograph::Time;
 
 MyApp::MyApp() :
   state_{PageState::kFirstPage} {}
 
 
 void MyApp::setup() {
-  //ImGui::initialize();
+
+  // Setup drop animation
+  float h = (float)cinder::app::getWindowHeight();
+  float y1 = h * 0.07f;
+  float y2 = h - y1;
+  PhraseRef<cinder::vec2> slide = makeRamp(cinder::vec2( 80, y1 ), cinder::vec2( 0, y2), 2.0f, EaseInOutCubic() );
+  
+  timeline.apply(&_position_a, slide);
+  timeline.apply(&_reference_slide, slide);
+  timeline.jumpTo(0);
+  
   
   // Setting up the songs
   cinder::audio::SourceFileRef songOneFile =
@@ -67,25 +86,28 @@ void PrintText(const string& text, const C& color, const cinder::ivec2& size,
 
 void MyApp::update() {
   
- /* if (state_ == PageState::playEasy) {
-    star_->start();
+  
+  
+  if (state_ == PageState::playEasy) {
+   // star_->start();
+    //const auto time = system_clock::now();
+     // timeline.step();
   } 
   if (state_ == PageState::playMed) {
-    birthday_->start();
+  //  birthday_->start();
   } 
   if (state_ == PageState::playHard) {
-    tetris_->start();
+  //  tetris_->start();
   } 
   if (state_ == PageState::goBack) {
     star_->stop();
     birthday_->stop();
     tetris_->stop();
-  }  */
+  }  
 }
 
 
 void MyApp::draw() {
- // ImGui::Text("Hello");
   
   draw_main();
   
@@ -98,6 +120,7 @@ void MyApp::draw() {
 
   if (state_ == PageState::playEasy) {
     draw_sheets();
+    draw_drop_animation();
   }
   
   if (state_ == PageState::playMed) {
@@ -134,18 +157,18 @@ void MyApp::draw_select() {
   
   const cinder::vec2 center = getWindowCenter();
   const cinder::ivec2 size = {1300, 400};
-  const Color color = Color::black();
+  const Color color = {0, 1, 0};
   //size_t row = 0;
   PrintText("Easy (press 1)", color, size, center);
 
   const cinder::vec2 center2 = getWindowCenter();
   const cinder::ivec2 size2 = {1300, 220};
-  const Color color2 = Color::black();
+  const Color color2 = {0, 0, 1};
   PrintText("Medium (press 2)", color2, size2, center2);
 
   const cinder::vec2 center3 = getWindowCenter();
   const cinder::ivec2 size3 = {1300, 50};
-  const Color color3 = Color::black();
+  const Color color3 = {1, 0, 0};
   PrintText("Hard (press 3)", color3, size3, center3);
 }
 
@@ -160,6 +183,12 @@ void MyApp::draw_sheets() {
   cinder::gl::drawSolidRect(Rectf(800, 690, 0, 700));
   
 }
+
+
+void MyApp::draw_drop_animation() {
+  cinder::gl::ScopedColor color( Color( cinder::CM_HSV, 0.72f, 1.0f, 1.0f ) );
+  cinder::gl::drawSolidCircle( _position_a, 30.0f );
+} 
 
 
 void MyApp::keyDown(KeyEvent event) {
@@ -187,6 +216,7 @@ void MyApp::keyDown(KeyEvent event) {
   if (event.getCode() == KeyEvent::KEY_3) {
     state_ = PageState::playHard;
   }
+  
 }
 
 }  // namespace myapp

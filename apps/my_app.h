@@ -3,11 +3,13 @@
 #ifndef FINALPROJECT_APPS_MYAPP_H_
 #define FINALPROJECT_APPS_MYAPP_H_
 
-#include <cinder/app/App.h>
+#include <choreograph/Timeline.h>
+#include <cinder/Rect.h>
 #include <cinder/app/App.h>
 #include <cinder/audio/audio.h>
 #include <cinder/gl/gl.h>
 
+#include <choreograph/Output.hpp>
 #include <random>
 #include <string>
 #include <vector>
@@ -30,14 +32,32 @@ class MyApp : public cinder::app::App {
   void draw_select();
   void draw_main();
   void draw_sheets();
+  void draw_drop_animation();
   void keyDown(cinder::app::KeyEvent) override;
+  
+  
 
  private: 
   PageState state_;
   cinder::audio::VoiceRef star_;
   cinder::audio::VoiceRef birthday_;
   cinder::audio::VoiceRef tetris_;
+
+  choreograph::Timeline timeline;
+  choreograph::Output<cinder::vec2> target;
+
+
+  choreograph::Output<ci::vec2> _position_a;
+  choreograph::Output<ci::vec2> _reference_slide;
   
+ //const size_t speed_;
+  
+
+  
+ 
+ // choreograph::Output<cinder::vec3> target;
+  
+  //rectange;
 };
 
 }  // namespace myapp
