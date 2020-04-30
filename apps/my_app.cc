@@ -39,29 +39,11 @@ MyApp::MyApp() :
 void MyApp::setup() {
 
   // Setup drop animation
-  float h = (float)cinder::app::getWindowHeight();
-  float y1 = h * 0.07f;
-  float y2 = h - y1;
-  PhraseRef<cinder::vec2> slide = makeRamp(cinder::vec2( 80, y1 ), cinder::vec2( 0, y2), 2.0f, EaseInOutCubic() );
+  set_animation();
+  set_songs();
   
-  timeline.apply(&_position_a, slide);
-  timeline.apply(&_reference_slide, slide);
-  timeline.jumpTo(0);
-  
-  
-  // Setting up the songs
-  cinder::audio::SourceFileRef songOneFile =
-      cinder::audio::load(cinder::app::loadAsset("star.mp3"));
-  star_ = cinder::audio::Voice::create(songOneFile);
-
-  cinder::audio::SourceFileRef songTwoFile =
-      cinder::audio::load(cinder::app::loadAsset("birthday.mp3"));
-  birthday_ = cinder::audio::Voice::create(songTwoFile);
-
-  cinder::audio::SourceFileRef songThreeFile =
-      cinder::audio::load(cinder::app::loadAsset("tetris.mp3"));
-  tetris_ = cinder::audio::Voice::create(songThreeFile);
 }
+
 
 template <typename C>
 void PrintText(const string& text, const C& color, const cinder::ivec2& size,
@@ -86,25 +68,25 @@ void PrintText(const string& text, const C& color, const cinder::ivec2& size,
 
 void MyApp::update() {
   
-  
-  
   if (state_ == PageState::playEasy) {
-   // star_->start();
-    //const auto time = system_clock::now();
-     // timeline.step();
+    auto dt = (Time)_timer.getSeconds();
+    _timer.start();
+    timeline.step(dt);
+    //star_->start();
   } 
+  
   if (state_ == PageState::playMed) {
   //  birthday_->start();
-  } 
-  if (state_ == PageState::playHard) {
-  //  tetris_->start();
-  } 
+  }
+ 
+ 
   if (state_ == PageState::goBack) {
     star_->stop();
-    birthday_->stop();
-    tetris_->stop();
+    _timer.stop();
+  //  birthday_->stop();
   }  
 }
+
 
 
 void MyApp::draw() {
@@ -124,10 +106,6 @@ void MyApp::draw() {
   }
   
   if (state_ == PageState::playMed) {
-    draw_sheets();
-  } 
-  
-  if (state_ == PageState::playHard) {
     draw_sheets();
   }
 }
@@ -164,12 +142,7 @@ void MyApp::draw_select() {
   const cinder::vec2 center2 = getWindowCenter();
   const cinder::ivec2 size2 = {1300, 220};
   const Color color2 = {0, 0, 1};
-  PrintText("Medium (press 2)", color2, size2, center2);
-
-  const cinder::vec2 center3 = getWindowCenter();
-  const cinder::ivec2 size3 = {1300, 50};
-  const Color color3 = {1, 0, 0};
-  PrintText("Hard (press 3)", color3, size3, center3);
+  PrintText("Not Easy (press 2)", color2, size2, center2);
 }
 
 void MyApp::draw_sheets() {
@@ -186,8 +159,17 @@ void MyApp::draw_sheets() {
 
 
 void MyApp::draw_drop_animation() {
-  cinder::gl::ScopedColor color( Color( cinder::CM_HSV, 0.72f, 1.0f, 1.0f ) );
-  cinder::gl::drawSolidCircle( _position_a, 30.0f );
+  cinder::gl::ScopedColor color( Color(cinder::CM_HSV, 0.72f, 1.0f, 1.0f));
+  cinder::gl::drawSolidCircle( _position_a, 30.0f);
+
+  cinder::gl::ScopedColor color2(Color(cinder::CM_HSV, 0.72f, 1.0f, 1.0f));
+  cinder::gl::drawSolidCircle(_position_b, 30.0f);
+
+  cinder::gl::ScopedColor color3( Color(cinder::CM_HSV, 0.72f, 1.0f, 1.0f));
+  cinder::gl::drawSolidCircle(_position_c, 30.0f);
+
+  cinder::gl::ScopedColor color4( Color(cinder::CM_HSV, 0.72f, 1.0f, 1.0f));
+  cinder::gl::drawSolidCircle(_position_d, 30.0f); 
 } 
 
 
@@ -204,7 +186,6 @@ void MyApp::keyDown(KeyEvent event) {
     state_ = PageState::goBack;
   }
   
-  
   if (event.getCode() == KeyEvent::KEY_1) {
     state_ = PageState::playEasy;
   }
@@ -212,11 +193,40 @@ void MyApp::keyDown(KeyEvent event) {
   if (event.getCode() == KeyEvent::KEY_2) {
     state_ = PageState::playMed;
   }
-
-  if (event.getCode() == KeyEvent::KEY_3) {
-    state_ = PageState::playHard;
-  }
   
+}
+
+void MyApp::set_songs() {
+  cinder::audio::SourceFileRef songOneFile =
+      cinder::audio::load(cinder::app::loadAsset("star.mp3"));
+  star_ = cinder::audio::Voice::create(songOneFile);
+
+  cinder::audio::SourceFileRef songTwoFile =
+      cinder::audio::load(cinder::app::loadAsset("birthday.mp3"));
+  birthday_ = cinder::audio::Voice::create(songTwoFile);
+}
+
+void MyApp::set_animation(){
+  float h = (float)cinder::app::getWindowHeight();
+  float y1 = h * 0.02f;
+  float y2 = h - y1;
+  PhraseRef<cinder::vec2> slide =
+      makeRamp(cinder::vec2(85, 0), cinder::vec2(85, 1000), 6.0f, EaseInOutCubic());
+
+  PhraseRef<cinder::vec2> slide_second =
+      makeRamp(cinder::vec2(300, 0), cinder::vec2(300, 1000), 10.0f, EaseInOutCubic());
+
+  PhraseRef<cinder::vec2> slide_third =
+      makeRamp(cinder::vec2(500, 0), cinder::vec2(500, 1000), 8.0f, EaseInOutCubic());
+
+  PhraseRef<cinder::vec2> slide_fourth =
+      makeRamp(cinder::vec2(710, 0), cinder::vec2(710, 1000), 12.0f, EaseInOutCubic());
+
+  timeline.apply(&_position_a, slide);
+  timeline.apply(&_position_b, slide_second);
+  timeline.apply(&_position_c, slide_third);
+  timeline.apply(&_position_d, slide_fourth);
+  timeline.jumpTo(0);
 }
 
 }  // namespace myapp
