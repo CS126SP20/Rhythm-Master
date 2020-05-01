@@ -10,10 +10,6 @@
 #include <cinder/audio/audio.h>
 #include <cinder/gl/gl.h>
 
-//#include "/Users/allanhuang/Desktop/cinder_0.9.2_mac/blocks/Choreograph/samples/src/pockets/cobweb/CobWeb.h"
-//#include "/Users/allanhuang/Desktop/cinder_0.9.2_mac/blocks/Choreograph/samples/src/pockets/Scene.h"
-//#include "/Users/allanhuang/Desktop/cinder_0.9.2_mac/blocks/Choreograph/samples/src/pockets/cobweb/RootNode.h"
-
 #include <choreograph/Output.hpp>
 #include <random>
 #include <string>
@@ -39,42 +35,33 @@ class MyApp : public cinder::app::App {
   MyApp();
   void setup() override;
   void update() override;
-  void set_animation();
+  void set_easy_animation(); // Use choreograph to make the slide animation
   void set_songs();
   void draw() override;
   void draw_select();
   void draw_main();
   void draw_sheets();
-  void draw_drop_animation();
+  void draw_nodes();
   void keyDown(cinder::app::KeyEvent) override;
   
-  
-
-  
-
  private: 
   PageState state_;
+  
+  int kBegin = 0;
+  int kEnd = 1000;
+  
   cinder::audio::VoiceRef star_;
   cinder::audio::VoiceRef birthday_;
-  cinder::audio::VoiceRef tetris_;
 
   choreograph::Timeline timeline;
+  
+  // Circle positions represented by 2d vectors
   choreograph::Output<ci::vec2> _position_a;
   choreograph::Output<ci::vec2> _position_b;
   choreograph::Output<ci::vec2> _position_c;
   choreograph::Output<ci::vec2> _position_d;
   
-  
-  ci::Timer _timer;
-  
-
-  
-  
- 
- 
- // choreograph::Output<cinder::vec3> target;
-  
-  //rectange;
+  ci::Timer timer_;
 };
 
 }  // namespace myapp

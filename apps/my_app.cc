@@ -18,7 +18,7 @@
 namespace myapp {
 
 using namespace choreograph;
-
+using choreograph::Time;
 
 using cinder::app::KeyEvent;
 using cinder::Color;
@@ -30,20 +30,14 @@ using std::chrono::seconds;
 using std::chrono::system_clock;
 
 using std::string;
-using choreograph::Time;
 
 MyApp::MyApp() :
   state_{PageState::kFirstPage} {}
-
-
-void MyApp::setup() {
-
-  // Setup drop animation
-  set_animation();
-  set_songs();
   
+void MyApp::setup() {
+  set_easy_animation();
+  set_songs();
 }
-
 
 template <typename C>
 void PrintText(const string& text, const C& color, const cinder::ivec2& size,
@@ -65,32 +59,28 @@ void PrintText(const string& text, const C& color, const cinder::ivec2& size,
   cinder::gl::draw(texture, locp);
 }
 
-
 void MyApp::update() {
-  
+  auto dt = (Time)timer_.getSeconds();
   if (state_ == PageState::playEasy) {
-    auto dt = (Time)_timer.getSeconds();
-    _timer.start();
+    
+    // Begin music and animation
+    timer_.start();
     timeline.step(dt);
-    //star_->start();
-  } 
-  
-  if (state_ == PageState::playMed) {
-  //  birthday_->start();
+    star_->start();
   }
+  
+ /* if (state_ == PageState::playMed) {
+  //  birthday_->start();
+  } */
  
- 
+ // Reset Animation (currently working on it)
   if (state_ == PageState::goBack) {
     star_->stop();
-    _timer.stop();
-  //  birthday_->stop();
-  }  
+    timeline.resetTime();
+  }
 }
 
-
-
 void MyApp::draw() {
-  
   draw_main();
   
   if (state_ == PageState::nextPage) {
@@ -102,7 +92,7 @@ void MyApp::draw() {
 
   if (state_ == PageState::playEasy) {
     draw_sheets();
-    draw_drop_animation();
+    draw_nodes();
   }
   
   if (state_ == PageState::playMed) {
@@ -115,8 +105,7 @@ void MyApp::draw_main() {
 
   const cinder::vec2 center = getWindowCenter();
   const cinder::ivec2 size = {1300, 400};
-  const Color color = {1, 0, 0};
-  //size_t row = 0;
+  const Color color = {1, 0, 1};
   PrintText("Rhythm Master", color, size, center);
 
   const cinder::vec2 center2 = getWindowCenter();
@@ -136,17 +125,20 @@ void MyApp::draw_select() {
   const cinder::vec2 center = getWindowCenter();
   const cinder::ivec2 size = {1300, 400};
   const Color color = {0, 1, 0};
-  //size_t row = 0;
   PrintText("Easy (press 1)", color, size, center);
 
   const cinder::vec2 center2 = getWindowCenter();
   const cinder::ivec2 size2 = {1300, 220};
   const Color color2 = {0, 0, 1};
   PrintText("Not Easy (press 2)", color2, size2, center2);
+
+  const cinder::vec2 center3 = getWindowCenter();
+  const cinder::ivec2 size3 = {1300, 50};
+  const Color color3 = {1, 0, 0};
+  PrintText("Go Back(left arrow key)", color3, size3, center3);
 }
 
 void MyApp::draw_sheets() {
-  
   // Vertical lines
   cinder::gl::clear(cinder::Color(1,1,1));
   cinder::gl::drawSolidRect(Rectf(190, 800, 200, 0));
@@ -154,11 +146,12 @@ void MyApp::draw_sheets() {
   cinder::gl::drawSolidRect(Rectf(590, 800, 600, 0));
   // Horizontal line
   cinder::gl::drawSolidRect(Rectf(800, 690, 0, 700));
-  
 }
 
 
-void MyApp::draw_drop_animation() {
+void MyApp::draw_nodes() {
+  
+  // Draws out the nodes consist of 4 circles
   cinder::gl::ScopedColor color( Color(cinder::CM_HSV, 0.72f, 1.0f, 1.0f));
   cinder::gl::drawSolidCircle( _position_a, 30.0f);
 
@@ -193,7 +186,6 @@ void MyApp::keyDown(KeyEvent event) {
   if (event.getCode() == KeyEvent::KEY_2) {
     state_ = PageState::playMed;
   }
-  
 }
 
 void MyApp::set_songs() {
@@ -201,32 +193,33 @@ void MyApp::set_songs() {
       cinder::audio::load(cinder::app::loadAsset("star.mp3"));
   star_ = cinder::audio::Voice::create(songOneFile);
 
-  cinder::audio::SourceFileRef songTwoFile =
+ /* cinder::audio::SourceFileRef songTwoFile =
       cinder::audio::load(cinder::app::loadAsset("birthday.mp3"));
-  birthday_ = cinder::audio::Voice::create(songTwoFile);
+  birthday_ = cinder::audio::Voice::create(songTwoFile); */
 }
 
-void MyApp::set_animation(){
-  float h = (float)cinder::app::getWindowHeight();
-  float y1 = h * 0.02f;
-  float y2 = h - y1;
+void MyApp::set_easy_animation() {
+  
+  // Make the slide ramp for each circle with different speed
   PhraseRef<cinder::vec2> slide =
-      makeRamp(cinder::vec2(85, 0), cinder::vec2(85, 1000), 6.0f, EaseInOutCubic());
+      makeRamp(cinder::vec2(85, kBegin), cinder::vec2(85, kEnd), 6.0f, EaseInOutCubic());
 
   PhraseRef<cinder::vec2> slide_second =
-      makeRamp(cinder::vec2(300, 0), cinder::vec2(300, 1000), 10.0f, EaseInOutCubic());
+      makeRamp(cinder::vec2(300, kBegin), cinder::vec2(300, kEnd), 10.0f, EaseInOutCubic());
 
   PhraseRef<cinder::vec2> slide_third =
-      makeRamp(cinder::vec2(500, 0), cinder::vec2(500, 1000), 8.0f, EaseInOutCubic());
+      makeRamp(cinder::vec2(500, kBegin), cinder::vec2(500, kEnd), 8.0f, EaseInOutCubic());
 
   PhraseRef<cinder::vec2> slide_fourth =
-      makeRamp(cinder::vec2(710, 0), cinder::vec2(710, 1000), 12.0f, EaseInOutCubic());
+      makeRamp(cinder::vec2(710, kBegin), cinder::vec2(710, kEnd), 12.0f, EaseInOutCubic());
 
+  // Apply the sliding animation for each circle
   timeline.apply(&_position_a, slide);
   timeline.apply(&_position_b, slide_second);
   timeline.apply(&_position_c, slide_third);
   timeline.apply(&_position_d, slide_fourth);
   timeline.jumpTo(0);
 }
+
 
 }  // namespace myapp
