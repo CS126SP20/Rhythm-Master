@@ -12,6 +12,5 @@ let the user choose from, by pressing "1" "2" and "3"
 Press left arrow key to go back to the main screen.
 
 ## Notes
-This is according to my progress so far.
-
-I cannot gurantee anymore features without further to implement.
+Because this week's goal is to get the animation going, I didn't have
+anymore key features to add, therefore, no new instructions to the players.

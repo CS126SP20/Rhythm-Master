@@ -31,3 +31,12 @@ Still reading through the documentation, found it confusing.
 Finished implementing the basic code for 1 tile, the animation doesn't not because the update()
 doesn't not take in any argument, however, on the Choreograph documentation, the update() seems
 able to take 1 argument (ch:Time dt). Stuck and struggling to get the animation going.
+
+4/30/20:
+--
+Made the animation work, added 3 more tiles, made them drop at different speed. However, still
+need to figure out how to repeat the animation. 
+
+Because Choreograph is way more difficult than I thought it would be, I HAVE to reduce the number 
+of songs to 1, with (hopefully) 2 difficulties. Or I will be extremely difficult to take care of 
+all three songs.
