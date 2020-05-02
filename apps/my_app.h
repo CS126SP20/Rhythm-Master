@@ -20,7 +20,7 @@
 
 namespace myapp {
 
-//using namespace pockets;
+
 
 
 enum class PageState {
@@ -48,20 +48,21 @@ class MyApp : public cinder::app::App {
   PageState state_;
   
   int kBegin = 0;
-  int kEnd = 1000;
+  int kEnd = 900;
+  bool startsong;
+  double track_start;
   
-  cinder::audio::VoiceRef star_;
-  cinder::audio::VoiceRef birthday_;
-
   choreograph::Timeline timeline;
-  
   // Circle positions represented by 2d vectors
   choreograph::Output<ci::vec2> _position_a;
   choreograph::Output<ci::vec2> _position_b;
   choreograph::Output<ci::vec2> _position_c;
   choreograph::Output<ci::vec2> _position_d;
   
-  ci::Timer timer_;
+  
+  cinder::Timer tracker_;
+  cinder::Timer timer_;
+  cinder::audio::VoiceRef star_;
 };
 
 }  // namespace myapp

@@ -20,6 +20,10 @@ namespace myapp {
 using namespace choreograph;
 using choreograph::Time;
 
+using std::chrono::duration_cast;
+using std::chrono::seconds;
+using std::chrono::system_clock;
+
 using cinder::app::KeyEvent;
 using cinder::Color;
 using cinder::ColorA;
@@ -31,12 +35,18 @@ using std::chrono::system_clock;
 
 using std::string;
 
+const seconds kCountdownTime = seconds(33);
+
+
 MyApp::MyApp() :
   state_{PageState::kFirstPage} {}
   
 void MyApp::setup() {
+  startsong = false;
   set_easy_animation();
   set_songs();
+  
+  tracker_.start();
 }
 
 template <typename C>
@@ -61,22 +71,29 @@ void PrintText(const string& text, const C& color, const cinder::ivec2& size,
 
 void MyApp::update() {
   auto dt = (Time)timer_.getSeconds();
+  
   if (state_ == PageState::playEasy) {
-    
-    // Begin music and animation
     timer_.start();
     timeline.step(dt);
-    star_->start();
+    
+    if (!startsong) {
+      star_->start();
+      startsong = true;
+      track_start = tracker_.getSeconds();
+      
+    } else {
+      if (tracker_.getSeconds() - track_start > 33.0) {
+        star_->stop();
+        timeline.clear();
+      }
+    }
   }
   
- /* if (state_ == PageState::playMed) {
-  //  birthday_->start();
-  } */
  
  // Reset Animation (currently working on it)
   if (state_ == PageState::goBack) {
     star_->stop();
-    timeline.resetTime();
+    draw_select();
   }
 }
 
@@ -192,10 +209,6 @@ void MyApp::set_songs() {
   cinder::audio::SourceFileRef songOneFile =
       cinder::audio::load(cinder::app::loadAsset("star.mp3"));
   star_ = cinder::audio::Voice::create(songOneFile);
-
- /* cinder::audio::SourceFileRef songTwoFile =
-      cinder::audio::load(cinder::app::loadAsset("birthday.mp3"));
-  birthday_ = cinder::audio::Voice::create(songTwoFile); */
 }
 
 void MyApp::set_easy_animation() {
@@ -213,11 +226,23 @@ void MyApp::set_easy_animation() {
   PhraseRef<cinder::vec2> slide_fourth =
       makeRamp(cinder::vec2(710, kBegin), cinder::vec2(710, kEnd), 12.0f, EaseInOutCubic());
 
-  // Apply the sliding animation for each circle
-  timeline.apply(&_position_a, slide);
-  timeline.apply(&_position_b, slide_second);
-  timeline.apply(&_position_c, slide_third);
-  timeline.apply(&_position_d, slide_fourth);
+  // Apply the sliding animation for each circle, and loop them
+  timeline.apply(&_position_a, slide).finishFn([&m = *_position_a.inputPtr()] {
+    m.resetTime();
+  });
+
+  timeline.apply(&_position_b, slide_second).finishFn([&m = *_position_b.inputPtr()] {
+    m.resetTime();
+  });
+
+  timeline.apply(&_position_c, slide_third).finishFn([&m = *_position_c.inputPtr()] {
+    m.resetTime();
+  });
+
+  timeline.apply(&_position_d, slide_fourth).finishFn([&m = *_position_d.inputPtr()] {
+    m.resetTime();
+  });
+  
   timeline.jumpTo(0);
 }
 
