@@ -35,14 +35,14 @@ using std::chrono::system_clock;
 
 using std::string;
 
-const seconds kCountdownTime = seconds(33);
 
 
 MyApp::MyApp() :
-  state_{PageState::kFirstPage} {}
+  state_{PageState::firstPage} {}
   
 void MyApp::setup() {
-  startsong = false;
+  start_song = false;
+
   set_easy_animation();
   set_songs();
   
@@ -70,30 +70,34 @@ void PrintText(const string& text, const C& color, const cinder::ivec2& size,
 }
 
 void MyApp::update() {
-  auto dt = (Time)timer_.getSeconds();
-  
+ 
   if (state_ == PageState::playEasy) {
+    auto dt = (Time)timer_.getSeconds();
     timer_.start();
     timeline.step(dt);
     
-    if (!startsong) {
+    if (!start_song) {
       star_->start();
-      startsong = true;
+      start_song = true;
       track_start = tracker_.getSeconds();
-      
     } else {
-      if (tracker_.getSeconds() - track_start > 33.0) {
+       if (tracker_.getSeconds() - track_start > 5.0) {
         star_->stop();
         timeline.clear();
-      }
-    }
+        state_ = PageState::endgame;
+      } 
+    } 
   }
   
- 
+  if (state_ == PageState::endgame) {
+    timeline.clear();
+    star_->stop();
+  }
  // Reset Animation (currently working on it)
   if (state_ == PageState::goBack) {
+    start_song = false; // Set it to false so the song starts over
     star_->stop();
-    draw_select();
+    timeline.clear();
   }
 }
 
@@ -115,6 +119,10 @@ void MyApp::draw() {
   if (state_ == PageState::playMed) {
     draw_sheets();
   }
+  
+  if (state_ == PageState::endgame) {
+    draw_endgame();
+  }
 }
 
 void MyApp::draw_main() {
@@ -122,8 +130,8 @@ void MyApp::draw_main() {
 
   const cinder::vec2 center = getWindowCenter();
   const cinder::ivec2 size = {1300, 400};
-  const Color color = {1, 0, 1};
-  PrintText("Rhythm Master", color, size, center);
+  const Color pink = {1, 0, 1};
+  PrintText("Rhythm Master", pink, size, center);
 
   const cinder::vec2 center2 = getWindowCenter();
   const cinder::ivec2 size2 = {1300, 220};
@@ -158,6 +166,7 @@ void MyApp::draw_select() {
 void MyApp::draw_sheets() {
   // Vertical lines
   cinder::gl::clear(cinder::Color(1,1,1));
+  
   cinder::gl::drawSolidRect(Rectf(190, 800, 200, 0));
   cinder::gl::drawSolidRect(Rectf(390, 800, 400, 0));
   cinder::gl::drawSolidRect(Rectf(590, 800, 600, 0));
@@ -165,21 +174,29 @@ void MyApp::draw_sheets() {
   cinder::gl::drawSolidRect(Rectf(800, 690, 0, 700));
 }
 
+void MyApp::draw_endgame() {
+  cinder::gl::clear(cinder::Color(0,0,0));
+  
+  const cinder::vec2 center2 = getWindowCenter();
+  const cinder::ivec2 size2 = {1500, 220};
+  const Color yellow = {1, 1, 0};
+  PrintText("You Win!", yellow, size2, center2);
+}
 
 void MyApp::draw_nodes() {
   
   // Draws out the nodes consist of 4 circles
   cinder::gl::ScopedColor color( Color(cinder::CM_HSV, 0.72f, 1.0f, 1.0f));
-  cinder::gl::drawSolidCircle( _position_a, 30.0f);
+  cinder::gl::drawSolidCircle(position_a_, 30.0f);
 
   cinder::gl::ScopedColor color2(Color(cinder::CM_HSV, 0.72f, 1.0f, 1.0f));
-  cinder::gl::drawSolidCircle(_position_b, 30.0f);
+  cinder::gl::drawSolidCircle(position_b_, 30.0f);
 
   cinder::gl::ScopedColor color3( Color(cinder::CM_HSV, 0.72f, 1.0f, 1.0f));
-  cinder::gl::drawSolidCircle(_position_c, 30.0f);
+  cinder::gl::drawSolidCircle(position_c_, 30.0f);
 
   cinder::gl::ScopedColor color4( Color(cinder::CM_HSV, 0.72f, 1.0f, 1.0f));
-  cinder::gl::drawSolidCircle(_position_d, 30.0f); 
+  cinder::gl::drawSolidCircle(position_d_, 30.0f); 
 } 
 
 
@@ -194,14 +211,35 @@ void MyApp::keyDown(KeyEvent event) {
   
   if (event.getCode() == KeyEvent::KEY_LEFT) {
     state_ = PageState::goBack;
+    timeline.clear();
   }
   
   if (event.getCode() == KeyEvent::KEY_1) {
     state_ = PageState::playEasy;
+    timeline.resetTime();
+    set_easy_animation();
   }
 
   if (event.getCode() == KeyEvent::KEY_2) {
     state_ = PageState::playMed;
+  }
+  
+  // This is for in game interactions
+
+  if (event.getChar() == 'q') {
+    state_ = PageState::Qpressed;
+  }
+
+  if (event.getChar() == 'w') {
+    state_ = PageState::Wpressed;
+  }
+
+  if (event.getChar() == 'o') {
+    state_ = PageState::Opressed;
+  }
+
+  if (event.getChar() == 'p') {
+    state_ = PageState::Ppressed;
   }
 }
 
@@ -227,23 +265,28 @@ void MyApp::set_easy_animation() {
       makeRamp(cinder::vec2(710, kBegin), cinder::vec2(710, kEnd), 12.0f, EaseInOutCubic());
 
   // Apply the sliding animation for each circle, and loop them
-  timeline.apply(&_position_a, slide).finishFn([&m = *_position_a.inputPtr()] {
+  timeline.apply(&position_a_, slide).finishFn([&m = *position_a_.inputPtr()] {
     m.resetTime();
   });
 
-  timeline.apply(&_position_b, slide_second).finishFn([&m = *_position_b.inputPtr()] {
+  timeline.apply(&position_b_, slide_second).finishFn([&m = *position_b_.inputPtr()] {
     m.resetTime();
   });
 
-  timeline.apply(&_position_c, slide_third).finishFn([&m = *_position_c.inputPtr()] {
+  timeline.apply(&position_c_, slide_third).finishFn([&m = *position_c_.inputPtr()] {
     m.resetTime();
   });
 
-  timeline.apply(&_position_d, slide_fourth).finishFn([&m = *_position_d.inputPtr()] {
+  timeline.apply(&position_d_, slide_fourth).finishFn([&m = *position_d_.inputPtr()] {
     m.resetTime();
   });
   
   timeline.jumpTo(0);
+  
+  
+  
+  
+  
 }
 
 

@@ -20,12 +20,10 @@
 
 namespace myapp {
 
-
-
-
 enum class PageState {
-  kFirstPage, nextPage,
-  goBack, playEasy, playMed
+  firstPage, nextPage,
+  goBack, playEasy, playMed, endgame,
+  Qpressed, Wpressed, Opressed, Ppressed, losegame
 };
 
 const char kNormalFont[] = "Arial";
@@ -41,24 +39,26 @@ class MyApp : public cinder::app::App {
   void draw_select();
   void draw_main();
   void draw_sheets();
+  void draw_endgame();
   void draw_nodes();
   void keyDown(cinder::app::KeyEvent) override;
-  
- private: 
+
   PageState state_;
+  
+ private:
   
   int kBegin = 0;
   int kEnd = 900;
-  bool startsong;
+  bool start_song;
   double track_start;
   
   choreograph::Timeline timeline;
-  // Circle positions represented by 2d vectors
-  choreograph::Output<ci::vec2> _position_a;
-  choreograph::Output<ci::vec2> _position_b;
-  choreograph::Output<ci::vec2> _position_c;
-  choreograph::Output<ci::vec2> _position_d;
   
+  // Circle positions represented by 2d vectors
+  choreograph::Output<ci::vec2> position_a_;
+  choreograph::Output<ci::vec2> position_b_;
+  choreograph::Output<ci::vec2> position_c_;
+  choreograph::Output<ci::vec2> position_d_;
   
   cinder::Timer tracker_;
   cinder::Timer timer_;
