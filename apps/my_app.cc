@@ -37,8 +37,7 @@ using std::string;
 
 
 
-MyApp::MyApp() :
-  state_{PageState::firstPage} {}
+MyApp::MyApp() {}
   
 void MyApp::setup() {
   start_song = false;
@@ -50,6 +49,7 @@ void MyApp::setup() {
 }
 
 template <typename C>
+//  The following code is used from the Snake project
 void PrintText(const string& text, const C& color, const cinder::ivec2& size,
                const cinder::vec2& loc) {
   cinder::gl::color(color);
@@ -76,16 +76,19 @@ void MyApp::update() {
     timer_.start();
     timeline.step(dt);
     
+    check_pos();
+    reset_press();
+    
     if (!start_song) {
       star_->start();
       start_song = true;
       track_start = tracker_.getSeconds();
     } else {
-       if (tracker_.getSeconds() - track_start > 5.0) {
+       if (tracker_.getSeconds() - track_start > 33.0) {
         star_->stop();
         timeline.clear();
         state_ = PageState::endgame;
-      } 
+      }  
     } 
   }
   
@@ -93,36 +96,58 @@ void MyApp::update() {
     timeline.clear();
     star_->stop();
   }
- // Reset Animation (currently working on it)
-  if (state_ == PageState::goBack) {
-    start_song = false; // Set it to false so the song starts over
-    star_->stop();
-    timeline.clear();
+  
+ // Reset everything
+   if (state_ == PageState::goBack) {
+     key_Q = QKeyState::QNotPressed;
+     
+  /*   key_W = WKeyState::WNotPressed;
+     key_O = OKeyState::ONotPressed;
+     key_P = PKeyState::PNotPressed; */
+     
+     start_song = false; // Set it to false so the song starts over
+     star_->stop();
+     timeline.clear();
   }
 }
 
 void MyApp::draw() {
-  draw_main();
+  
   
   if (state_ == PageState::nextPage) {
-    if (state_ == PageState::goBack) {
-      draw_main();
-    }
     draw_select();
+    return;
+  }
+
+  if (state_ == PageState::goBack) {
+    draw_main();
   }
 
   if (state_ == PageState::playEasy) {
     draw_sheets();
     draw_nodes();
+    return;
   }
   
   if (state_ == PageState::playMed) {
     draw_sheets();
+    return;
   }
   
   if (state_ == PageState::endgame) {
-    draw_endgame();
+    draw_wingame();
+    return;
   }
+  
+  if (state_ == PageState::losegame) {
+    draw_losegame();
+    return;
+  }
+  
+  if (state_ == PageState::firstPage) {
+    draw_main();
+  }
+  
 }
 
 void MyApp::draw_main() {
@@ -174,16 +199,31 @@ void MyApp::draw_sheets() {
   cinder::gl::drawSolidRect(Rectf(800, 690, 0, 700));
 }
 
-void MyApp::draw_endgame() {
+void MyApp::draw_wingame() {
   cinder::gl::clear(cinder::Color(0,0,0));
   
+  const cinder::vec2 center = getWindowCenter();
+  const cinder::ivec2 size = {1500, 300};
+  const Color yellow = {1, 1, 0};
+  PrintText("You Win!", yellow, size, center);
+
+  const cinder::vec2 center2 = getWindowCenter();
+  const cinder::ivec2 size2 = {1500, 100};
+  const Color yellow2 = {1, 1, 2};
+  PrintText("(left arrow) Go Back", yellow2, size2, center2);
+}
+
+void MyApp::draw_losegame() {
+  cinder::gl::clear(cinder::Color(0,0,0));
+
   const cinder::vec2 center2 = getWindowCenter();
   const cinder::ivec2 size2 = {1500, 220};
   const Color yellow = {1, 1, 0};
-  PrintText("You Win!", yellow, size2, center2);
+  PrintText("You Lose!", yellow, size2, center2);
 }
 
 void MyApp::draw_nodes() {
+  
   
   // Draws out the nodes consist of 4 circles
   cinder::gl::ScopedColor color( Color(cinder::CM_HSV, 0.72f, 1.0f, 1.0f));
@@ -217,53 +257,64 @@ void MyApp::keyDown(KeyEvent event) {
   if (event.getCode() == KeyEvent::KEY_1) {
     state_ = PageState::playEasy;
     timeline.resetTime();
-    set_easy_animation();
+    set_easy_animation(); 
   }
-
+  
   if (event.getCode() == KeyEvent::KEY_2) {
     state_ = PageState::playMed;
   }
   
-  // This is for in game interactions
-
   if (event.getChar() == 'q') {
-    state_ = PageState::Qpressed;
+    key_Q = QKeyState::Qpressed;
+    q_after_press.start();
+    click_->start();
   }
-
+  
   if (event.getChar() == 'w') {
-    state_ = PageState::Wpressed;
+    key_W = WKeyState::Wpressed;
+    w_after_press.start();
+    click_->start();
   }
-
+  
   if (event.getChar() == 'o') {
-    state_ = PageState::Opressed;
+    key_O = OKeyState::Opressed;
+    o_after_press.start();
+    click_->start();
   }
-
+  
   if (event.getChar() == 'p') {
-    state_ = PageState::Ppressed;
-  }
+    key_P = PKeyState::Ppressed;
+    p_after_press.start();
+    click_->start();
+  }  
 }
+
 
 void MyApp::set_songs() {
   cinder::audio::SourceFileRef songOneFile =
       cinder::audio::load(cinder::app::loadAsset("star.mp3"));
   star_ = cinder::audio::Voice::create(songOneFile);
+
+  cinder::audio::SourceFileRef clickFile =
+      cinder::audio::load(cinder::app::loadAsset("click.mp3"));
+  click_ = cinder::audio::Voice::create(clickFile);
 }
 
 void MyApp::set_easy_animation() {
   
   // Make the slide ramp for each circle with different speed
   PhraseRef<cinder::vec2> slide =
-      makeRamp(cinder::vec2(85, kBegin), cinder::vec2(85, kEnd), 6.0f, EaseInOutCubic());
+      makeRamp(cinder::vec2(85, kBegin), cinder::vec2(85, kEnd), 7.0f, EaseInOutCubic());
 
   PhraseRef<cinder::vec2> slide_second =
-      makeRamp(cinder::vec2(300, kBegin), cinder::vec2(300, kEnd), 10.0f, EaseInOutCubic());
+      makeRamp(cinder::vec2(300, kBegin), cinder::vec2(300, kEnd), 10.5f, EaseInOutCubic());
 
   PhraseRef<cinder::vec2> slide_third =
-      makeRamp(cinder::vec2(500, kBegin), cinder::vec2(500, kEnd), 8.0f, EaseInOutCubic());
+      makeRamp(cinder::vec2(500, kBegin), cinder::vec2(500, kEnd), 8.5f, EaseInOutCubic());
 
   PhraseRef<cinder::vec2> slide_fourth =
-      makeRamp(cinder::vec2(710, kBegin), cinder::vec2(710, kEnd), 12.0f, EaseInOutCubic());
-
+      makeRamp(cinder::vec2(710, kBegin), cinder::vec2(710, kEnd), 12.5f, EaseInOutCubic());
+  
   // Apply the sliding animation for each circle, and loop them
   timeline.apply(&position_a_, slide).finishFn([&m = *position_a_.inputPtr()] {
     m.resetTime();
@@ -282,11 +333,63 @@ void MyApp::set_easy_animation() {
   });
   
   timeline.jumpTo(0);
+}
+
+void MyApp::check_pos() {
+  if (position_a_.value().y > 850) {
+    if (key_Q != QKeyState::Qpressed) {
+      state_ = PageState::losegame;
+      star_->stop();
+      timeline.clear();
+    }
+  }
   
+  if (position_b_.value().y > 850) {
+    if (key_W != WKeyState::Wpressed) {
+      state_ = PageState::losegame;
+      star_->stop();
+      timeline.clear();
+    }
+  } 
+
+  if (position_c_.value().y > 850) {
+    if (key_O != OKeyState::Opressed) {
+      state_ = PageState::losegame;
+      star_->stop();
+      timeline.clear();
+    }
+  }
   
-  
-  
-  
+  if (position_d_.value().y > 850) {
+    if (key_P != PKeyState::Ppressed) {
+      state_ = PageState::losegame;
+      star_->stop();
+      timeline.clear();
+    }
+  } 
+   
+}
+
+void MyApp::reset_press() {
+  if (q_after_press.getSeconds() > 4.0 && key_Q == QKeyState::Qpressed) {
+    key_Q = QKeyState::QNotPressed;
+    q_after_press.stop();
+  }
+
+  if (w_after_press.getSeconds() > 5.0 && key_W == WKeyState::Wpressed) {
+    key_W = WKeyState::WNotPressed;
+    w_after_press.stop();
+  } 
+
+  if (o_after_press.getSeconds() > 5.0 && key_O == OKeyState::Opressed) {
+    key_O = OKeyState::ONotPressed;
+    o_after_press.stop();
+  } 
+
+  if (p_after_press.getSeconds() > 6.0 && key_P == PKeyState::Ppressed) {
+    key_P = PKeyState::PNotPressed;
+    p_after_press.stop();
+  } 
 }
 
 

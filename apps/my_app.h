@@ -16,34 +16,62 @@
 #include <vector>
 #include <string>
 
-
-
 namespace myapp {
 
-enum class PageState {
-  firstPage, nextPage,
-  goBack, playEasy, playMed, endgame,
-  Qpressed, Wpressed, Opressed, Ppressed, losegame
-};
+
 
 const char kNormalFont[] = "Arial";
 
 class MyApp : public cinder::app::App {
+
+  enum class PageState {
+    firstPage, nextPage,
+    goBack, playEasy, playMed, endgame,
+     losegame
+  };
+  
+  enum class QKeyState {
+    QNotPressed, Qpressed
+  };
+
+  enum class WKeyState {
+    WNotPressed,  Wpressed, 
+  };
+
+  enum class OKeyState {
+    ONotPressed, Opressed
+  };
+
+  enum class PKeyState {
+    PNotPressed, Ppressed
+  };
+  
  public:
   MyApp();
   void setup() override;
   void update() override;
   void set_easy_animation(); // Use choreograph to make the slide animation
   void set_songs();
+  
   void draw() override;
   void draw_select();
   void draw_main();
   void draw_sheets();
-  void draw_endgame();
+  void draw_wingame();
+  void draw_losegame();
   void draw_nodes();
+  
   void keyDown(cinder::app::KeyEvent) override;
+  
+  void check_pos();
+  void reset_press();
 
-  PageState state_;
+  PageState state_ = PageState::firstPage;
+  
+  QKeyState key_Q = QKeyState::QNotPressed;
+  WKeyState key_W = WKeyState::WNotPressed;
+  OKeyState key_O = OKeyState::ONotPressed;
+  PKeyState key_P = PKeyState::PNotPressed;
   
  private:
   
@@ -60,9 +88,15 @@ class MyApp : public cinder::app::App {
   choreograph::Output<ci::vec2> position_c_;
   choreograph::Output<ci::vec2> position_d_;
   
+  cinder::Timer q_after_press;
+  cinder::Timer w_after_press;
+  cinder::Timer o_after_press;
+  cinder::Timer p_after_press;
+  
   cinder::Timer tracker_;
   cinder::Timer timer_;
   cinder::audio::VoiceRef star_;
+  cinder::audio::VoiceRef click_;
 };
 
 }  // namespace myapp
