@@ -140,7 +140,7 @@ void MyApp::draw() {
 }
 
 void MyApp::draw_main() {
-  cinder::gl::clear(cinder::Color(1,1,1));
+  cinder::gl::clear(cinder::Color(0,1,1));
  // cinder::gl::draw(background_);
   
   const cinder::ivec2 size = {1300, 400};
@@ -148,24 +148,23 @@ void MyApp::draw_main() {
   PrintText("Rhythm Master", pink, size, kCenter);
   
   const cinder::ivec2 size2 = {1300, 220};
-  const Color color2 = Color::black();
-  PrintText("Press s to play", color2, size2, kCenter);
+  const Color black = Color::black();
+  PrintText("Press s to play", black, size2, kCenter);
   
   const cinder::ivec2 size3 = {1300, 50};
-  const Color color3 = Color::black();
-  PrintText("Press esc to quit", color3, size3, kCenter);
+  PrintText("Press esc to quit", black, size3, kCenter);
 }
 
 void MyApp::draw_select() {
-  cinder::gl::clear(cinder::Color(1,1,1));
+  cinder::gl::clear(cinder::Color(1,1,0));
   
   const cinder::ivec2 size = {1300, 200};
-  const Color color = {0, 1, 0};
+  const Color color = {0, 0, 1};
   PrintText("Easy (press 1)", color, size, kCenter);
   
   const cinder::ivec2 size3 = {1300, 50};
-  const Color color3 = {1, 0, 0};
-  PrintText("Go Back(left arrow key)", color3, size3, kCenter);
+  const Color red = {1, 0, 0};
+  PrintText("Go Back(left arrow key)", red, size3, kCenter);
 }
 
 void MyApp::draw_sheets() {
@@ -221,7 +220,6 @@ void MyApp::draw_nodes() {
   cinder::gl::drawSolidCircle(position_d_, 30.0f); 
 } 
 
-
 void MyApp::keyDown(KeyEvent event) {
   if (event.getCode() == KeyEvent::KEY_ESCAPE) {
     exit(0);
@@ -266,7 +264,6 @@ void MyApp::keyDown(KeyEvent event) {
     click_->start();
   }  
 }
-
 
 void MyApp::set_songs() {
   
