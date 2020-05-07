@@ -136,7 +136,6 @@ void MyApp::draw() {
   if (state_ == PageState::kFirstPage) {
     draw_main();
   }
-  
 }
 
 void MyApp::draw_main() {
@@ -312,7 +311,6 @@ void MyApp::set_easy_animation() {
 }
 
 void MyApp::check_pos() {
-  
   /*
    * If the position of the tile goes beyond 850,
    * then set the condition to end game condition.
@@ -352,7 +350,6 @@ void MyApp::check_pos() {
 }
 
 void MyApp::reset_key_state() {
-  
   /*
    * Reset the keystate to not pressed after optimized
    * time, so the user has to click the keys again before
