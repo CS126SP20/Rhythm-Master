@@ -7,7 +7,6 @@
 
 #include <mylibrary/example.h>
 
-
 TEST_CASE("Random sanity test", "[random]") {
   const float random = cinder::randFloat();
   REQUIRE(0. <= random);
